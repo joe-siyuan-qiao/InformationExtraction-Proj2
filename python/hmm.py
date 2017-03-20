@@ -42,6 +42,13 @@ class Fenon:
             self.emiss[0][output] + self.alpha[0] * self.trans[2]
         return self.alpha[1]
 
+    def backward(self, later, beta, output):
+        self.beta[1] = beta
+        self.beta[0] = self.beta[1] * self.trans[2] + later.beta[0] * \
+            self.trans[1] * self.emiss[1][output] + later.beta[1] * \
+            self.trans[0] * self.trans[0][output]
+        return self.beta[0]
+
     def alphasum(self):
         return self.alpha[0] + self.alpha[1]
 
@@ -97,6 +104,22 @@ class Silence:
             self.emiss[4][output] + self.alpha[3] * self.trans[6] + \
             self.alpha[4] * self.trans[8] + self.alpha[5] * self.trans[10]
         return self.alpha[6]
+
+    def backward(self, later, beta, output):
+        self.beta[6] = beta
+        self.beta[5] = self.beta[6] * self.trans[10] + \
+            later.beta[6] * self.trans[11] * self.emiss[11][output]
+        self.beta[4] = self.beta[6] * self.trans[8] + \
+            later.beta[5] * self.trans[9] * self.emiss[9][output]
+        self.beta[3] = self.beta[6] * self.trans[6] + \
+            later.beta[4] * self.trans[7] * self.emiss[7][output]
+        self.beta[2] = later.beta[6] * self.trans[4] * self.emiss[4][output] + \
+            later.beta[2] * self.trans[3] * self.emiss[3][output]
+        self.beta[1] = later.beta[2] * self.trans[2] * self.emiss[2][output] + \
+            later.beta[1] * self.trans[1] * self.emiss[1][output]
+        self.beta[0] = later.beta[1] * self.trans[0] * self.emiss[0][output] + \
+            later.beta[3] * self.trans[5] * self.emiss[5][output]
+        return self.beta[0]
 
     def alphasum(self):
         retsum = 0.0
