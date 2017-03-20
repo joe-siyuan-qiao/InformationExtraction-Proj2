@@ -12,4 +12,6 @@ lbl = os.path.join('data', 'clsp.trnlbls')
 
 trainer = hmm.Trainer()
 trainer.read_fenones(lbl)
-trainer.build_fenonic_baseforms(scr, pts, lbl)
+trainer.pick_fenonic_baseforms(scr, pts, lbl)
+trainer.read_training_data(scr, lbl)
+# print trainer.training_data

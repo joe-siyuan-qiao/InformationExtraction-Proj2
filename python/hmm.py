@@ -107,7 +107,7 @@ class Trainer:
         self.modelpool.append(Silence())
         fin.close()
 
-    def build_fenonic_baseforms(self, scr, pts, lbl):
+    def pick_fenonic_baseforms(self, scr, pts, lbl):
         scr, pts, lbl = open(scr, 'r'), open(pts, 'r'), open(lbl, 'r')
         scrlines, ptslines, lbllines = scr.readlines()[1:], pts.readlines()[
             1:], lbl.readlines()[1:]
@@ -123,3 +123,23 @@ class Trainer:
         scr.close()
         pts.close()
         lbl.close()
+
+    def read_training_data(self, scr, lbl):
+        self.training_data = []
+        scr, lbl = open(scr, 'r'), open(lbl, 'r')
+        scrlines, lbllines = scr.readlines()[1:], lbl.readlines()[1:]
+        for i in range(len(scrlines)):
+            srcline = scrlines[i][:-1]
+            lblline = lbllines[i][:-1]
+            lblline = lblline.split(' ')
+            self.training_data.append([srcline, lblline])
+
+    def build_baseforms(self):
+        self.baseforms = {}
+        for word in self.fenonic_baseforms_fenones:
+            self.baseforms[word] = Baseform()
+            self.baseforms[word].build(
+                self.fenonic_baseforms_fenones[word], self.modelpool)
+
+    def init_trainig_trellis(self):
+        self.training_trellis = []
