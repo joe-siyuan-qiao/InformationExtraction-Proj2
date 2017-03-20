@@ -143,7 +143,7 @@ class Baseform:
         """
         alpha = 0.0
         for i in range(len(self.model)):
-            alpha = self.model[i].forward(prev[i], alpha, output)
+            alpha = self.model[i].forward(prev.model[i], alpha, output)
 
     def alphasum(self):
         self.norm = 0.0
@@ -177,7 +177,7 @@ class Trellis:
     def forward(self):
         # initilize alpha at stage 0
         self.stage[0].model[0].alpha[0] = 1.0
-        for i in range(len(data)):
+        for i in range(len(self.data)):
             prev = self.stage[i]
             self.stage[i + 1].forward(prev, Fenon.cvtname2id(self.data[i]))
             self.stage[i + 1].normalpha()
@@ -236,13 +236,12 @@ class Trainer:
         for i in range(len(scrlines)):
             srcline = scrlines[i][:-1]
             lblline = lbllines[i][:-1]
-            lblline = lblline.split(' ')
+            lblline = lblline.split(' ')[:-1]
             self.training_data.append([srcline, lblline])
 
     def build_baseforms(self):
         self.baseforms = {}
         for word in self.fenonic_baseforms_fenones:
-            print 'for', word
             self.baseforms[word] = Baseform(word)
             self.baseforms[word].build(
                 self.fenonic_baseforms_fenones[word], self.modelpool)
@@ -250,13 +249,11 @@ class Trainer:
     def init_training_trellis(self):
         self.training_trellis = []
         for i in range(len(self.training_data)):
-            print 'for', i
             word, data = self.training_data[i][0:2]
             self.training_trellis.append(Trellis(self.baseforms[word], data))
 
     def forward(self):
         for i in range(len(self.training_trellis)):
-            print 'forwarding for', i
             self.training_trellis[i].forward()
 
     def backward(self):
