@@ -73,9 +73,9 @@ class Fenon:
                   self.emiss[1][output] * self.beta[0])
         pt.append(prev.alpha[0] * self.trans[2] *
                   self.beta[1] * norm)
-        for i in range(accmodel[self.id].trans):
-            accmodel[self.id].trans[i] += pt[0]
-            accmodel[self.id].emiss[i][output] += pt[0]
+        for i in range(len(accmodel[self.id].trans)):
+            accmodel[self.id].trans[i] += pt[i]
+            accmodel[self.id].emiss[i][output] += pt[i]
 
     @staticmethod
     def cvtname2id(name):
@@ -198,6 +198,7 @@ class Baseform:
 
     def __init__(self, name):
         self.name = name
+        self.norm = 1.0
 
     def build(self, fenones, modelpool):
         self.model = [deepcopy(modelpool[256]), ]
@@ -238,7 +239,7 @@ class Baseform:
 
     def pass_accmodel(self, accmodel, prev, output):
         for i in range(len(self.model)):
-            self.model[i].forward(accmodel, prev.model[i], output, self.norm)
+            self.model[i].pass_accmodel(accmodel, prev.model[i], output, self.norm)
 
 
 class Trellis:
@@ -280,7 +281,7 @@ class Trellis:
         for i in range(len(self.data)):
             prev = self.stage[i]
             output = Fenon.cvtname2id(self.data[i])
-            self.stage[i + 1].pass_accmodel(accmodel, output)
+            self.stage[i + 1].pass_accmodel(accmodel, prev, output)
 
 
 class Trainer:
@@ -373,7 +374,9 @@ class Trainer:
                 accmodel[i].emiss = [[0.0] * 256] * 12
         for i in range(len(self.training_trellis)):
             self.training_trellis[i].pass_accmodel(accmodel)
+        return accmodel
         for i in range(len(self.modelpool)):
+            break
             if self.modelpool[i].id < 256:
                 self.modelpool[i].trans = accmodel[i].trans
                 trans_array = np.array(self.modelpool[i].trans)
@@ -405,7 +408,7 @@ class Trainer:
                     10] / (accmodel[i].trans[10] + accmodel[i].trans[11])
                 self.modelpool[i].trans[11] = accmodel[i].trans[
                     11] / (accmodel[i].trans[10] + accmodel[i].trans[11])
-            for j in range(self.modelpool[i].emiss):
+            for j in range(len(self.modelpool[i].emiss)):
                 emiss_array = np.array(self.modelpool[i].emiss[j])
                 emiss_array = emiss_array / emiss_array.sum()
                 self.modelpool[i].emiss[j] = emiss_array.tolist()
