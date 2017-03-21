@@ -227,7 +227,7 @@ class Trellis:
         for i in range(len(self.stage[-1].model)):
             for j in range(len(self.stage[-1].model[i].beta)):
                 self.stage[-1].model[i].beta[j] = 1.0 / self.stage[-1].norm
-        for i in range(len(data) - 1, -1, -1):
+        for i in range(len(self.data) - 1, -1, -1):
             later = self.stage[i + 1]
             self.stage[i].backward(later, Fenon.cvtname2id(self.data[i]))
 
