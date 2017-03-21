@@ -46,7 +46,7 @@ class Fenon:
         self.beta[1] = beta
         self.beta[0] = self.beta[1] * self.trans[2] + later.beta[0] * \
             self.trans[1] * self.emiss[1][output] + later.beta[1] * \
-            self.trans[0] * self.trans[0][output]
+            self.trans[0] * self.emiss[0][output]
         return self.beta[0]
 
     def alphasum(self):
