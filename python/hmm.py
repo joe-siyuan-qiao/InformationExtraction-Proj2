@@ -56,6 +56,10 @@ class Fenon:
         self.alpha[0] /= norm
         self.alpha[1] /= norm
 
+    def normbeta(self, norm):
+        self.beta[0] /= norm
+        self.beta[1] /= norm
+
     def zeroalpha(self):
         self.alpha[0] = 0.0
         self.alpha[1] = 0.0
@@ -131,6 +135,10 @@ class Silence:
         for i in range(7):
             self.alpha[i] /= norm
 
+    def normbeta(self, norm):
+        for i in range(7):
+            self.beta[i] /= norm
+
     def zeroalpha(self):
         for i in range(7):
             self.alpha[i] = 0.0
@@ -168,6 +176,11 @@ class Baseform:
         for i in range(len(self.model)):
             alpha = self.model[i].forward(prev.model[i], alpha, output)
 
+    def backward(self, later, output):
+        beta = 0.0
+        for i in range(len(self.model) - 1 , -1, -1):
+            beta = self.model[i].backward(later.model[i], beta, output)
+
     def alphasum(self):
         self.norm = 0.0
         for i in range(len(self.model)):
@@ -178,6 +191,10 @@ class Baseform:
         self.alphasum()
         for i in range(len(self.model)):
             self.model[i].normalpha(self.norm)
+
+    def normbeta(self):
+        for i in range(len(self.model)):
+            self.model[i].normbeta(self.norm)
 
 
 class Trellis:
@@ -204,6 +221,15 @@ class Trellis:
             prev = self.stage[i]
             self.stage[i + 1].forward(prev, Fenon.cvtname2id(self.data[i]))
             self.stage[i + 1].normalpha()
+
+    def backward(self):
+        # initilize beta at the last stage
+        for i in range(len(self.stage[-1].model)):
+            for j in range(len(self.stage[-1].model[i].beta)):
+                self.stage[-1].model[i].beta[j] = 1.0 / self.stage[-1].norm
+        for i in range(len(data) - 1, -1, -1):
+            later = self.stage[i + 1]
+            self.stage[i].backward(later, Fenon.cvtname2id(self.data[i]))
 
 
 class Trainer:
