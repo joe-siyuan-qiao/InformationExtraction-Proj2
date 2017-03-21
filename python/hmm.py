@@ -3,6 +3,7 @@ The implementation of the fenonic baseforms for isolated word recognition
 """
 
 from copy import deepcopy
+import numpy as np
 
 
 class Fenon:
@@ -63,6 +64,18 @@ class Fenon:
     def zeroalpha(self):
         self.alpha[0] = 0.0
         self.alpha[1] = 0.0
+
+    def pass_accmodel(self, accmodel, prev, output, norm):
+        pt = []
+        pt.append(prev.alpha[0] * self.trans[0] *
+                  self.emiss[0][output] * self.beta[1])
+        pt.append(prev.alpha[0] * self.trans[1] *
+                  self.emiss[1][output] * self.beta[0])
+        pt.append(prev.alpha[0] * self.trans[2] *
+                  self.beta[1] * norm)
+        for i in range(accmodel[self.id].trans):
+            accmodel[self.id].trans[i] += pt[0]
+            accmodel[self.id].emiss[i][output] += pt[0]
 
     @staticmethod
     def cvtname2id(name):
@@ -143,6 +156,33 @@ class Silence:
         for i in range(7):
             self.alpha[i] = 0.0
 
+    def pass_accmodel(self, accmodel, prev, output, norm):
+        pt = []
+        pt.append(prev.alpha[0] * self.trans[0] *
+                  self.emiss[0][output] * self.beta[1])
+        pt.append(prev.alpha[1] * self.trans[1] *
+                  self.emiss[1][output] * self.beta[1])
+        pt.append(prev.alpha[1] * self.trans[2] *
+                  self.emiss[2][output] * self.beta[2])
+        pt.append(prev.alpha[2] * self.trans[3] *
+                  self.emiss[3][output] * self.beta[2])
+        pt.append(prev.alpha[2] * self.trans[4] *
+                  self.emiss[4][output] * self.beta[6])
+        pt.append(prev.alpha[0] * self.trans[5] *
+                  self.emiss[5][output] * self.beta[3])
+        pt.append(prev.alpha[3] * self.trans[6] * self.beta[6] * norm)
+        pt.append(prev.alpha[3] * self.trans[7] *
+                  self.emiss[7][output] * self.beta[4])
+        pt.append(prev.alpha[4] * self.trans[8] * self.beta[6] * norm)
+        pt.append(prev.alpha[4] * self.trans[9] *
+                  self.emiss[9][output] * self.beta[5])
+        pt.append(prev.alpha[5] * self.trans[10] * self.beta[6] * norm)
+        pt.append(prev.alpha[5] * self.trans[11] *
+                  self.emiss[11][output] * self.beta[6])
+        for i in range(accmodel[self.id].trans):
+            accmodel[self.id].trans[i] += pt[i]
+            accmodel[self.id].emiss[i][output] += pt[i]
+
 
 class Baseform:
     """
@@ -178,7 +218,7 @@ class Baseform:
 
     def backward(self, later, output):
         beta = 0.0
-        for i in range(len(self.model) - 1 , -1, -1):
+        for i in range(len(self.model) - 1, -1, -1):
             beta = self.model[i].backward(later.model[i], beta, output)
 
     def alphasum(self):
@@ -195,6 +235,10 @@ class Baseform:
     def normbeta(self):
         for i in range(len(self.model)):
             self.model[i].normbeta(self.norm)
+
+    def pass_accmodel(self, accmodel, prev, output):
+        for i in range(len(self.model)):
+            self.model[i].forward(accmodel, prev.model[i], output, self.norm)
 
 
 class Trellis:
@@ -230,6 +274,13 @@ class Trellis:
         for i in range(len(self.data) - 1, -1, -1):
             later = self.stage[i + 1]
             self.stage[i].backward(later, Fenon.cvtname2id(self.data[i]))
+            self.stage[i].normbeta()
+
+    def pass_accmodel(self, accmodel):
+        for i in range(len(self.data)):
+            prev = self.stage[i]
+            output = Fenon.cvtname2id(self.data[i])
+            self.stage[i + 1].pass_accmodel(accmodel, output)
 
 
 class Trainer:
@@ -308,3 +359,53 @@ class Trainer:
     def backward(self):
         for i in range(len(self.training_trellis)):
             self.training_trellis[i].backward()
+
+    def update(self):
+        # copy format from modelpool
+        accmodel = deepcopy(self.modelpool)
+        # set all to zero
+        for i in range(len(accmodel)):
+            if accmodel[i].id < 256:
+                accmodel[i].trans = [0.0] * 3
+                accmodel[i].emiss = [[0.0] * 256] * 3
+            else:
+                accmodel[i].trans = [0.0] * 12
+                accmodel[i].emiss = [[0.0] * 256] * 12
+        for i in range(len(self.training_trellis)):
+            self.training_trellis[i].pass_accmodel(accmodel)
+        for i in range(len(self.modelpool)):
+            if self.modelpool[i].id < 256:
+                self.modelpool[i].trans = accmodel[i].trans
+                trans_array = np.array(self.modelpool[i].trans)
+                trans_array = trans_array / trans_array.sum()
+                self.modelpool[i].trans = trans_array.tolist()
+                self.modelpool[i].emiss = accmodel[i].emiss
+            else:
+                self.modelpool[i].trans[0] = accmodel[i].trans[
+                    0] / (accmodel[i].trans[0] + accmodel[i].trans[5])
+                self.modelpool[i].trans[1] = accmodel[i].trans[
+                    1] / (accmodel[i].trans[1] + accmodel[i].trans[2])
+                self.modelpool[i].trans[2] = accmodel[i].trans[
+                    2] / (accmodel[i].trans[1] + accmodel[i].trans[2])
+                self.modelpool[i].trans[3] = accmodel[i].trans[
+                    3] / (accmodel[i].trans[3] + accmodel[i].trans[4])
+                self.modelpool[i].trans[4] = accmodel[i].trans[
+                    4] / (accmodel[i].trans[3] + accmodel[i].trans[4])
+                self.modelpool[i].trans[5] = accmodel[i].trans[
+                    5] / (accmodel[i].trans[0] + accmodel[i].trans[5])
+                self.modelpool[i].trans[6] = accmodel[i].trans[
+                    6] / (accmodel[i].trans[6] + accmodel[i].trans[7])
+                self.modelpool[i].trans[7] = accmodel[i].trans[
+                    7] / (accmodel[i].trans[6] + accmodel[i].trans[7])
+                self.modelpool[i].trans[8] = accmodel[i].trans[
+                    8] / (accmodel[i].trans[8] + accmodel[i].trans[9])
+                self.modelpool[i].trans[9] = accmodel[i].trans[
+                    9] / (accmodel[i].trans[8] + accmodel[i].trans[9])
+                self.modelpool[i].trans[10] = accmodel[i].trans[
+                    10] / (accmodel[i].trans[10] + accmodel[i].trans[11])
+                self.modelpool[i].trans[11] = accmodel[i].trans[
+                    11] / (accmodel[i].trans[10] + accmodel[i].trans[11])
+            for j in range(self.modelpool[i].emiss):
+                emiss_array = np.array(self.modelpool[i].emiss[j])
+                emiss_array = emiss_array / emiss_array.sum()
+                self.modelpool[i].emiss[j] = emiss_array.tolist()
