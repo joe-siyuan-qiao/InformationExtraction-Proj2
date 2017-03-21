@@ -34,3 +34,5 @@ with Timer('init_training_trellis'):
     trainer.init_training_trellis()
 with Timer('forward'):
     trainer.forward()
+with Timer('backward'):
+    trainer.backward()
