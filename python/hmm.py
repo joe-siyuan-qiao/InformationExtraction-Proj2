@@ -374,14 +374,13 @@ class Trainer:
                 accmodel[i].emiss = [[0.0] * 256] * 12
         for i in range(len(self.training_trellis)):
             self.training_trellis[i].pass_accmodel(accmodel)
-        return accmodel
         for i in range(len(self.modelpool)):
             if self.modelpool[i].id < 256:
-                self.modelpool[i].trans = accmodel[i].trans
-                trans_array = np.array(self.modelpool[i].trans)
-                trans_array = trans_array / trans_array.sum()
-                self.modelpool[i].trans = trans_array.tolist()
-                self.modelpool[i].emiss = accmodel[i].emiss
+                trans_array = np.array(accmodel[i].trans)
+                trans_array_sum = trans_array.sum()
+                if trans_array_sum > 0:
+                    trans_array = trans_array / trans_array.sum()
+                    self.modelpool[i].trans = trans_array.tolist()
             else:
                 self.modelpool[i].trans[0] = accmodel[i].trans[
                     0] / (accmodel[i].trans[0] + accmodel[i].trans[5])
@@ -407,7 +406,9 @@ class Trainer:
                     10] / (accmodel[i].trans[10] + accmodel[i].trans[11])
                 self.modelpool[i].trans[11] = accmodel[i].trans[
                     11] / (accmodel[i].trans[10] + accmodel[i].trans[11])
-            for j in range(len(self.modelpool[i].emiss)):
-                emiss_array = np.array(self.modelpool[i].emiss[j])
-                emiss_array = emiss_array / emiss_array.sum()
-                self.modelpool[i].emiss[j] = emiss_array.tolist()
+            for j in range(len(accmodel[i].emiss)):
+                emiss_array = np.array(accmodel[i].emiss[j])
+                emiss_array_sum = emiss_array.sum()
+                if emiss_array_sum > 0:
+                    emiss_array = emiss_array / emiss_array.sum()
+                    self.modelpool[i].emiss[j] = emiss_array.tolist()
