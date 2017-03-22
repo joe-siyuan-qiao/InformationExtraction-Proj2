@@ -18,13 +18,13 @@ class Timer(object):
 
 id1 = hmm.Fenon.cvtname2id('AA')
 id2 = hmm.Fenon.cvtname2id('JV')
-lbl = os.path.join('data', 'clsp.lblnames')
+lblnames = os.path.join('data', 'clsp.lblnames')
 scr = os.path.join('data', 'clsp.trnscr')
 pts = os.path.join('data', 'clsp.endpts')
 lbl = os.path.join('data', 'clsp.trnlbls')
 
 trainer = hmm.Trainer()
-trainer.read_fenones(lbl)
+trainer.read_fenones(lblnames)
 trainer.pick_fenonic_baseforms(scr, pts, lbl)
 trainer.read_training_data(scr, lbl)
 # print trainer.training_data
@@ -36,9 +36,9 @@ print trainer.modelpool[0].trans
 print trainer.modelpool[0].emiss
 with Timer('forward'):
     trainer.forward()
-with Timer('backward'):
-    trainer.backward()
-with Timer('update'):
-    trainer.update()
-print trainer.modelpool[0].trans
-print trainer.modelpool[0].emiss
+# with Timer('backward'):
+#     trainer.backward()
+# with Timer('update'):
+#     trainer.update()
+# print trainer.modelpool[0].trans
+# print trainer.modelpool[0].emiss

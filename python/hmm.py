@@ -179,7 +179,7 @@ class Silence:
         pt.append(prev.alpha[5] * self.trans[10] * self.beta[6] * norm)
         pt.append(prev.alpha[5] * self.trans[11] *
                   self.emiss[11][output] * self.beta[6])
-        for i in range(accmodel[self.id].trans):
+        for i in range(len(accmodel[self.id].trans)):
             accmodel[self.id].trans[i] += pt[i]
             accmodel[self.id].emiss[i][output] += pt[i]
 
@@ -203,7 +203,7 @@ class Baseform:
     def build(self, fenones, modelpool):
         self.model = [deepcopy(modelpool[256]), ]
         for fenon in fenones:
-            self.model.append(modelpool[Fenon.cvtname2id(fenon)])
+            self.model.append(deepcopy(modelpool[Fenon.cvtname2id(fenon)]))
         self.model.append(deepcopy(modelpool[256]))
 
     def forward(self, prev, output):
@@ -376,7 +376,6 @@ class Trainer:
             self.training_trellis[i].pass_accmodel(accmodel)
         return accmodel
         for i in range(len(self.modelpool)):
-            break
             if self.modelpool[i].id < 256:
                 self.modelpool[i].trans = accmodel[i].trans
                 trans_array = np.array(self.modelpool[i].trans)
