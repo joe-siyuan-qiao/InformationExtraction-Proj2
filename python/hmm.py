@@ -30,7 +30,9 @@ class Fenon:
         self.name = name
         self.id = Fenon.cvtname2id(name)
         self.trans = [0.8, 0.1, 0.1]
-        self.emiss = [[0.5 / 255] * 256] * 3
+        self.emiss = []
+        for i in range(3):
+            self.emiss.append([0.5 / 255] * 256)
         for i in range(3):
             self.emiss[i][self.id] = 0.5
         self.alpha = [0.0] * 2
@@ -107,7 +109,9 @@ class Silence:
         self.name = 'sil'
         self.id = 256
         self.trans = [0.5] * 12
-        self.emiss = [[1. / 256] * 256] * 12
+        self.emiss = []
+        for i in range(12):
+            self.emiss.append([1. / 256] * 256)
         self.alpha = [0.0] * 7
         self.beta = [0.0] * 7
 
@@ -384,10 +388,14 @@ class Trainer:
         for i in range(len(accmodel)):
             if accmodel[i].id < 256:
                 accmodel[i].trans = [0.0] * 3
-                accmodel[i].emiss = [[0.0] * 256] * 3
+                accmodel[i].emiss = []
+                for j in range(3):
+                    accmodel[i].emiss.append([0.0] * 256)
             else:
                 accmodel[i].trans = [0.0] * 12
-                accmodel[i].emiss = [[0.0] * 256] * 12
+                accmodel[i].emiss = []
+                for j in range(12):
+                    accmodel[i].emiss.append([0.0] * 256)
         for i in range(len(self.training_trellis)):
             self.training_trellis[i].pass_accmodel(accmodel)
         self.accmodel = deepcopy(accmodel)
