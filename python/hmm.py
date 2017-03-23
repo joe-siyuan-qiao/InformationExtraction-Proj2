@@ -71,7 +71,7 @@ class Fenon:
                   self.emiss[0][output] * self.beta[1])
         pt.append(prev.alpha[0] * self.trans[1] *
                   self.emiss[1][output] * self.beta[0])
-        pt.append(prev.alpha[0] * self.trans[2] *
+        pt.append(self.alpha[0] * self.trans[2] *
                   self.beta[1] * norm)
         for i in range(len(accmodel[self.id].trans)):
             accmodel[self.id].trans[i] += pt[i]
@@ -174,13 +174,13 @@ class Silence:
                   self.emiss[4][output] * self.beta[6])
         pt.append(prev.alpha[0] * self.trans[5] *
                   self.emiss[5][output] * self.beta[3])
-        pt.append(prev.alpha[3] * self.trans[6] * self.beta[6] * norm)
+        pt.append(self.alpha[3] * self.trans[6] * self.beta[6] * norm)
         pt.append(prev.alpha[3] * self.trans[7] *
                   self.emiss[7][output] * self.beta[4])
-        pt.append(prev.alpha[4] * self.trans[8] * self.beta[6] * norm)
+        pt.append(self.alpha[4] * self.trans[8] * self.beta[6] * norm)
         pt.append(prev.alpha[4] * self.trans[9] *
                   self.emiss[9][output] * self.beta[5])
-        pt.append(prev.alpha[5] * self.trans[10] * self.beta[6] * norm)
+        pt.append(self.alpha[5] * self.trans[10] * self.beta[6] * norm)
         pt.append(prev.alpha[5] * self.trans[11] *
                   self.emiss[11][output] * self.beta[6])
         for i in range(len(accmodel[self.id].trans)):
@@ -390,6 +390,7 @@ class Trainer:
                 accmodel[i].emiss = [[0.0] * 256] * 12
         for i in range(len(self.training_trellis)):
             self.training_trellis[i].pass_accmodel(accmodel)
+        self.accmodel = deepcopy(accmodel)
         for i in range(len(self.modelpool)):
             if self.modelpool[i].id < 256:
                 trans_array = np.array(accmodel[i].trans)
@@ -431,4 +432,4 @@ class Trainer:
 
     def update_trellis(self):
         for i in range(len(self.training_trellis)):
-            self.training_trellis.update(self.modelpool)
+            self.training_trellis[i].update(self.modelpool)

@@ -36,9 +36,11 @@ print trainer.modelpool[0].trans
 print trainer.modelpool[0].emiss
 with Timer('forward'):
     trainer.forward()
-# with Timer('backward'):
-#     trainer.backward()
-# with Timer('update'):
-#     trainer.update()
+with Timer('backward'):
+    trainer.backward()
+with Timer('update modelpool'):
+    trainer.update_modelpool()
+with Timer('update trellis'):
+    trainer.update_trellis()
 # print trainer.modelpool[0].trans
 # print trainer.modelpool[0].emiss
