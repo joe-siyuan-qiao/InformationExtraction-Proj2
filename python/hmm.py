@@ -6,6 +6,7 @@ from copy import deepcopy
 import numpy as np
 import sys
 import math
+import pickle
 
 
 class Fenon:
@@ -468,3 +469,31 @@ class Trainer:
         for i in range(len(self.training_trellis)):
             alp.append(self.training_trellis[i].getalp())
         return alp
+
+    def save_model(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(self.modelpool, f)
+
+    def load_model(self, filename):
+        with open(filename, 'rb') as f:
+            self.modelpool = pickle.load(f)
+
+    def test(self, data):
+        test_trellis = []
+        word_list = []
+        for word in self.modelpool:
+            word_list.append(word)
+            test_trellis.append(Trellis(self.baseforms[word], data))
+        for i in range(len(test_trellis)):
+            test_trellis[i].forward()
+        alp_list = []
+        for i in range(len(test_trellis)):
+            alp_list.append(test_trellis[i].getalp())
+        alp_np = np.array(alp_list)
+        alp_md = 0.5 * (np.max(alp_np) + np.min(alp_np))
+        alp_np = alp_np - alp_md
+        alp_np = alp_np * len(data)
+        lp_np = np.exp(alp_np)
+        lp_np = lp_np / lp_np.sum()
+        del test_trellis
+        return lp_np.tolist()
