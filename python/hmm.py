@@ -4,6 +4,7 @@ The implementation of the fenonic baseforms for isolated word recognition
 
 from copy import deepcopy
 import numpy as np
+import sys
 
 
 class Fenon:
@@ -29,14 +30,16 @@ class Fenon:
     def __init__(self, name):
         self.name = name
         self.id = Fenon.cvtname2id(name)
+        self.alpha = [0.0] * 2
+        self.beta = [0.0] * 2
+
+    def init_prob(self):
         self.trans = [0.8, 0.1, 0.1]
         self.emiss = []
         for i in range(3):
             self.emiss.append([0.5 / 255] * 256)
         for i in range(3):
             self.emiss[i][self.id] = 0.5
-        self.alpha = [0.0] * 2
-        self.beta = [0.0] * 2
 
     def forward(self, prev, alpha, output):
         self.alpha[0] = alpha + prev.alpha[0] * \
@@ -108,12 +111,14 @@ class Silence:
     def __init__(self):
         self.name = 'sil'
         self.id = 256
+        self.alpha = [0.0] * 7
+        self.beta = [0.0] * 7
+
+    def init_prob(self):
         self.trans = [0.5] * 12
         self.emiss = []
         for i in range(12):
             self.emiss.append([1. / 256] * 256)
-        self.alpha = [0.0] * 7
-        self.beta = [0.0] * 7
 
     def forward(self, prev, alpha, output):
         self.alpha[0] = alpha
@@ -194,6 +199,7 @@ class Silence:
     def update(self, modelpool):
         self.trans = modelpool[self.id].trans
         self.emiss = modelpool[self.id].emiss
+
 
 class Baseform:
     """
@@ -367,11 +373,19 @@ class Trainer:
             self.baseforms[word].build(
                 self.fenonic_baseforms_fenones[word], self.modelpool)
 
+    def init_modelpool(self):
+        for i in range(len(self.modelpool)):
+            self.modelpool[i].init_prob()
+
     def init_training_trellis(self):
         self.training_trellis = []
         for i in range(len(self.training_data)):
+            sys.stdout.write('[init_training_trellis] {:d}/{:d}'.format(
+                i, len(self.training_data)))
+            sys.stdout.flush()
             word, data = self.training_data[i][0:2]
             self.training_trellis.append(Trellis(self.baseforms[word], data))
+        print 'done'
 
     def forward(self):
         for i in range(len(self.training_trellis)):

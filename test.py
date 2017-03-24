@@ -32,8 +32,10 @@ with Timer('build_baseforms'):
     trainer.build_baseforms()
 with Timer('init_training_trellis'):
     trainer.init_training_trellis()
-print trainer.modelpool[0].trans
-print trainer.modelpool[0].emiss
+with Timer('init_modelpool'):
+    trainer.init_modelpool()
+with Timer('update trellis'):
+    trainer.update_trellis()
 with Timer('forward'):
     trainer.forward()
 with Timer('backward'):
