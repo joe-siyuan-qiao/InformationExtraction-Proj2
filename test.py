@@ -3,6 +3,7 @@ import sys
 import time
 sys.path.insert(0, 'python')
 import hmm
+import numpy as np
 
 class Timer(object):
     def __init__(self, name=None):
@@ -27,6 +28,9 @@ trainer = hmm.Trainer()
 trainer.read_fenones(lblnames)
 trainer.pick_fenonic_baseforms(scr, pts, lbl)
 trainer.read_training_data(scr, lbl)
+training_data = trainer.training_data
+val_data = trainer.training_data[-198:]
+trainer.training_data = training_data[:600]
 # print trainer.training_data
 with Timer('build_baseforms'):
     trainer.build_baseforms()
@@ -36,15 +40,20 @@ with Timer('init_modelpool'):
     trainer.init_modelpool()
 with Timer('update trellis'):
     trainer.update_trellis()
-with Timer('Test'):
-    trainer.test(20)
-with Timer('forward'):
+for i in range(2):
     trainer.forward()
-with Timer('backward'):
+    alp = trainer.getalp()
+    print np.mean(alp)
     trainer.backward()
-with Timer('update modelpool'):
     trainer.update_modelpool()
-with Timer('update trellis'):
     trainer.update_trellis()
+acc = 0.0
+for i in range(len(val_data)):
+    word_list, score_list = trainer.infer(val_data[i][1])
+    inferred = word_list[np.argmax(np.array(score_list))]
+    if inferred == val_data[i][0]:
+        acc += 1
+    print acc / (i + 1)
+print acc / len(val_data)
 # print trainer.modelpool[0].trans
 # print trainer.modelpool[0].emiss

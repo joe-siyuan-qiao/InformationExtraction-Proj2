@@ -61,12 +61,14 @@ class Fenon:
         return self.alpha[0] + self.alpha[1]
 
     def normalpha(self, norm):
-        self.alpha[0] /= norm
-        self.alpha[1] /= norm
+        if norm > 0:
+            self.alpha[0] /= norm
+            self.alpha[1] /= norm
 
     def normbeta(self, norm):
-        self.beta[0] /= norm
-        self.beta[1] /= norm
+        if norm > 0:
+            self.beta[0] /= norm
+            self.beta[1] /= norm
 
     def zeroalpha(self):
         self.alpha[0] = 0.0
@@ -160,12 +162,14 @@ class Silence:
         return retsum
 
     def normalpha(self, norm):
-        for i in range(7):
-            self.alpha[i] /= norm
+        if norm > 0:
+            for i in range(7):
+                self.alpha[i] /= norm
 
     def normbeta(self, norm):
-        for i in range(7):
-            self.beta[i] /= norm
+        if norm > 0:
+            for i in range(7):
+                self.beta[i] /= norm
 
     def zeroalpha(self):
         for i in range(7):
@@ -315,7 +319,7 @@ class Trellis:
     def getalp(self):
         lp = 0.0
         for i in range(len(self.stage)):
-            lp += math.log(self.stage[i].norm)
+            lp += np.log(self.stage[i].norm)
         lp /= len(self.data)
         return lp
 
@@ -496,7 +500,7 @@ class Trainer:
         for i in range(len(test_trellis)):
             alp_list.append(test_trellis[i].getalp())
         alp_np = np.array(alp_list)
-        alp_md = 0.5 * (np.max(alp_np) + np.min(alp_np))
+        alp_md = np.median(alp_np)
         alp_np = alp_np - alp_md
         alp_np = alp_np * len(data)
         ret_np = np.exp(alp_np)
