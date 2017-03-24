@@ -380,12 +380,12 @@ class Trainer:
     def init_training_trellis(self):
         self.training_trellis = []
         for i in range(len(self.training_data)):
-            sys.stdout.write('[init_training_trellis] {:d}/{:d}'.format(
+            sys.stdout.write('\r[init_training_trellis] {:d}/{:d}'.format(
                 i, len(self.training_data)))
             sys.stdout.flush()
             word, data = self.training_data[i][0:2]
             self.training_trellis.append(Trellis(self.baseforms[word], data))
-        print 'done'
+        print ' done'
 
     def forward(self):
         for i in range(len(self.training_trellis)):
