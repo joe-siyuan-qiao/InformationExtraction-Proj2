@@ -8,6 +8,7 @@ import sys
 import math
 import pickle
 
+npfloatinfo = np.finfo(float)
 
 class Fenon:
     """
@@ -319,7 +320,10 @@ class Trellis:
     def getalp(self):
         lp = 0.0
         for i in range(len(self.stage)):
-            lp += np.log(self.stage[i].norm)
+            if self.stage[i].norm > 0:
+                lp += np.log(self.stage[i].norm)
+            else:
+                lp += np.log(npfloatinfo.tiny)
         lp /= len(self.data)
         return lp
 
@@ -500,7 +504,7 @@ class Trainer:
         for i in range(len(test_trellis)):
             alp_list.append(test_trellis[i].getalp())
         alp_np = np.array(alp_list)
-        alp_md = np.median(alp_np)
+        alp_md = 0.5 * (np.max(alp_np) + np.min(alp_np))
         alp_np = alp_np - alp_md
         alp_np = alp_np * len(data)
         ret_np = np.exp(alp_np)

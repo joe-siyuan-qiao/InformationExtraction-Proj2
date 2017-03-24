@@ -40,7 +40,7 @@ with Timer('init_modelpool'):
     trainer.init_modelpool()
 with Timer('update trellis'):
     trainer.update_trellis()
-for i in range(2):
+for i in range(1):
     trainer.forward()
     alp = trainer.getalp()
     print np.mean(alp)
