@@ -5,6 +5,7 @@ The implementation of the fenonic baseforms for isolated word recognition
 from copy import deepcopy
 import numpy as np
 import sys
+import math
 
 
 class Fenon:
@@ -309,6 +310,12 @@ class Trellis:
         for i in range(len(self.stage)):
             self.stage[i].update(modelpool)
 
+    def getalp(self):
+        lp = 0.0
+        for i in range(len(self.stage)):
+            lp += math.log(self.stage[i].norm)
+        lp /= len(self.data)
+        return lp
 
 class Trainer:
     """
@@ -455,3 +462,9 @@ class Trainer:
     def update_trellis(self):
         for i in range(len(self.training_trellis)):
             self.training_trellis[i].update(self.modelpool)
+
+    def getalp(self):
+        alp = []
+        for i in range(len(self.training_trellis)):
+            alp.append(self.training_trellis[i].getalp())
+        return alp
