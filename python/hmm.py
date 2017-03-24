@@ -276,7 +276,8 @@ class Trellis:
         the stages of baseforms of the training word
     """
 
-    def __init__(self, baseform, data):
+    def __init__(self, baseform, data, word=''):
+        self.word = word
         self.baseform = baseform
         self.data = data
         self.stage = []
@@ -317,6 +318,7 @@ class Trellis:
             lp += math.log(self.stage[i].norm)
         lp /= len(self.data)
         return lp
+
 
 class Trainer:
     """
@@ -392,7 +394,8 @@ class Trainer:
                 i, len(self.training_data)))
             sys.stdout.flush()
             word, data = self.training_data[i][0:2]
-            self.training_trellis.append(Trellis(self.baseforms[word], data))
+            self.training_trellis.append(
+                Trellis(self.baseforms[word], data, word))
         print ' done'
 
     def forward(self):
@@ -478,7 +481,7 @@ class Trainer:
         with open(filename, 'rb') as f:
             self.modelpool = pickle.load(f)
 
-    def test(self, data):
+    def infer(self, data):
         test_trellis = []
         word_list = []
         for word in self.modelpool:
@@ -493,7 +496,20 @@ class Trainer:
         alp_md = 0.5 * (np.max(alp_np) + np.min(alp_np))
         alp_np = alp_np - alp_md
         alp_np = alp_np * len(data)
-        lp_np = np.exp(alp_np)
-        lp_np = lp_np / lp_np.sum()
+        ret_np = np.exp(alp_np)
+        ret_np = ret_np / ret_np.sum()
         del test_trellis
-        return lp_np.tolist()
+        return word_list, ret_np.tolist()
+
+    def test(self):
+        acc = 0.0
+        for i in range(len(self.training_data)):
+            sys.stdout.write('\r[test] {:d}/{:d}'.format(
+                i, len(self.training_data)))
+            sys.stdout.flush()
+            word, data = self.training_data[i][0:2]
+            word_list, probs = self.infer(data)
+            inferred = word_list[np.argmax(np.array(probs))]
+            if word == inferred:
+                acc += 1
+        print ' {:3f}'.format(acc / len(self.training_data))
