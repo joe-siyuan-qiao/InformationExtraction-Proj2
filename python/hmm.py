@@ -481,13 +481,16 @@ class Trainer:
         with open(filename, 'rb') as f:
             self.modelpool = pickle.load(f)
 
-    def infer(self, data):
+    def infer(self, data, modelpool=None):
+        if modelpool == None:
+            modelpool = self.modelpool
         test_trellis = []
         word_list = []
-        for word in self.modelpool:
+        for word in self.baseforms:
             word_list.append(word)
             test_trellis.append(Trellis(self.baseforms[word], data))
         for i in range(len(test_trellis)):
+            test_trellis[i].update(modelpool)
             test_trellis[i].forward()
         alp_list = []
         for i in range(len(test_trellis)):
@@ -501,15 +504,18 @@ class Trainer:
         del test_trellis
         return word_list, ret_np.tolist()
 
-    def test(self):
+    def test(self, top=None):
         acc = 0.0
-        for i in range(len(self.training_data)):
+        if top == None:
+            top = len(self.training_data)
+        for i in range(len(self.training_data) - top,
+                len(self.training_data)):
             sys.stdout.write('\r[test] {:d}/{:d}'.format(
-                i, len(self.training_data)))
+                i, top))
             sys.stdout.flush()
             word, data = self.training_data[i][0:2]
             word_list, probs = self.infer(data)
             inferred = word_list[np.argmax(np.array(probs))]
             if word == inferred:
                 acc += 1
-        print ' {:3f}'.format(acc / len(self.training_data))
+        print ' {:3f}'.format(acc / top * 100)

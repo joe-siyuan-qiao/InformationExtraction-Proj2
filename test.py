@@ -36,6 +36,8 @@ with Timer('init_modelpool'):
     trainer.init_modelpool()
 with Timer('update trellis'):
     trainer.update_trellis()
+with Timer('Test'):
+    trainer.test(20)
 with Timer('forward'):
     trainer.forward()
 with Timer('backward'):
