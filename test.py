@@ -40,10 +40,10 @@ with Timer('init_modelpool'):
     trainer.init_modelpool()
 with Timer('update trellis'):
     trainer.update_trellis()
-for i in range(1):
+for i in range(10):
     trainer.forward()
     alp = trainer.getalp()
-    print np.mean(alp)
+    print '{:.3f}@{:03d}'.format(np.mean(alp), i)
     trainer.backward()
     trainer.update_modelpool()
     trainer.update_trellis()

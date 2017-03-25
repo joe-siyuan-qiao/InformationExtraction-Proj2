@@ -10,6 +10,7 @@ import pickle
 
 npfloatinfo = np.finfo(float)
 
+
 class Fenon:
     """
     The class of fenon
@@ -399,7 +400,7 @@ class Trainer:
         self.training_trellis = []
         for i in range(len(self.training_data)):
             sys.stdout.write('\r[init_training_trellis] {:d}/{:d}'.format(
-                i, len(self.training_data)))
+                i + 1, len(self.training_data)))
             sys.stdout.flush()
             word, data = self.training_data[i][0:2]
             self.training_trellis.append(
@@ -439,37 +440,59 @@ class Trainer:
                 if trans_array_sum > 0:
                     trans_array = trans_array / trans_array.sum()
                     self.modelpool[i].trans = trans_array.tolist()
+                else:
+                    self.modelpool[i].trans = [0.0] * 3
             else:
-                self.modelpool[i].trans[0] = accmodel[i].trans[
-                    0] / (accmodel[i].trans[0] + accmodel[i].trans[5])
-                self.modelpool[i].trans[1] = accmodel[i].trans[
-                    1] / (accmodel[i].trans[1] + accmodel[i].trans[2])
-                self.modelpool[i].trans[2] = accmodel[i].trans[
-                    2] / (accmodel[i].trans[1] + accmodel[i].trans[2])
-                self.modelpool[i].trans[3] = accmodel[i].trans[
-                    3] / (accmodel[i].trans[3] + accmodel[i].trans[4])
-                self.modelpool[i].trans[4] = accmodel[i].trans[
-                    4] / (accmodel[i].trans[3] + accmodel[i].trans[4])
-                self.modelpool[i].trans[5] = accmodel[i].trans[
-                    5] / (accmodel[i].trans[0] + accmodel[i].trans[5])
-                self.modelpool[i].trans[6] = accmodel[i].trans[
-                    6] / (accmodel[i].trans[6] + accmodel[i].trans[7])
-                self.modelpool[i].trans[7] = accmodel[i].trans[
-                    7] / (accmodel[i].trans[6] + accmodel[i].trans[7])
-                self.modelpool[i].trans[8] = accmodel[i].trans[
-                    8] / (accmodel[i].trans[8] + accmodel[i].trans[9])
-                self.modelpool[i].trans[9] = accmodel[i].trans[
-                    9] / (accmodel[i].trans[8] + accmodel[i].trans[9])
-                self.modelpool[i].trans[10] = accmodel[i].trans[
-                    10] / (accmodel[i].trans[10] + accmodel[i].trans[11])
-                self.modelpool[i].trans[11] = accmodel[i].trans[
-                    11] / (accmodel[i].trans[10] + accmodel[i].trans[11])
+                if accmodel[i].trans[0] + accmodel[i].trans[5] > 0:
+                    self.modelpool[i].trans[0] = accmodel[i].trans[
+                        0] / (accmodel[i].trans[0] + accmodel[i].trans[5])
+                    self.modelpool[i].trans[5] = accmodel[i].trans[
+                        5] / (accmodel[i].trans[0] + accmodel[i].trans[5])
+                else:
+                    accmodel[i].trans[0], accmodel[i].trans[5] = 0., 0.
+                if accmodel[i].trans[1] + accmodel[i].trans[2] > 0:
+                    self.modelpool[i].trans[1] = accmodel[i].trans[
+                        1] / (accmodel[i].trans[1] + accmodel[i].trans[2])
+                    self.modelpool[i].trans[2] = accmodel[i].trans[
+                        2] / (accmodel[i].trans[1] + accmodel[i].trans[2])
+                else:
+                    accmodel[i].trans[1], accmodel[i].trans[2] = 0., 0.
+                if accmodel[i].trans[3] + accmodel[i].trans[4] > 0:
+                    self.modelpool[i].trans[3] = accmodel[i].trans[
+                        3] / (accmodel[i].trans[3] + accmodel[i].trans[4])
+                    self.modelpool[i].trans[4] = accmodel[i].trans[
+                        4] / (accmodel[i].trans[3] + accmodel[i].trans[4])
+                else:
+                    accmodel[i].trans[3], accmodel[i].trans[4] = 0., 0.
+                if accmodel[i].trans[6] + accmodel[i].trans[7] > 0:
+                    self.modelpool[i].trans[6] = accmodel[i].trans[
+                        6] / (accmodel[i].trans[6] + accmodel[i].trans[7])
+                    self.modelpool[i].trans[7] = accmodel[i].trans[
+                        7] / (accmodel[i].trans[6] + accmodel[i].trans[7])
+                else:
+                    accmodel[i].trans[6], accmodel[i].trans[7] = 0., 0.
+                if accmodel[i].trans[8] + accmodel[i].trans[9] > 0:
+                    self.modelpool[i].trans[8] = accmodel[i].trans[
+                        8] / (accmodel[i].trans[8] + accmodel[i].trans[9])
+                    self.modelpool[i].trans[9] = accmodel[i].trans[
+                        9] / (accmodel[i].trans[8] + accmodel[i].trans[9])
+                else:
+                    accmodel[i].trans[8], accmodel[i].trans[9] = 0., 0.
+                if accmodel[i].trans[10] + accmodel[i].trans[11] > 0:
+                    self.modelpool[i].trans[10] = accmodel[i].trans[
+                        10] / (accmodel[i].trans[10] + accmodel[i].trans[11])
+                    self.modelpool[i].trans[11] = accmodel[i].trans[
+                        11] / (accmodel[i].trans[10] + accmodel[i].trans[11])
+                else:
+                    accmodel[i].trans[10], accmodel[i].trans[11] = 0., 0.
             for j in range(len(accmodel[i].emiss)):
                 emiss_array = np.array(accmodel[i].emiss[j])
                 emiss_array_sum = emiss_array.sum()
                 if emiss_array_sum > 0:
                     emiss_array = emiss_array / emiss_array.sum()
                     self.modelpool[i].emiss[j] = emiss_array.tolist()
+                else:
+                    self.modelpool[i].emiss[j] = [0.0] * 256
 
     def update_trellis(self):
         for i in range(len(self.training_trellis)):
@@ -504,9 +527,8 @@ class Trainer:
         for i in range(len(test_trellis)):
             alp_list.append(test_trellis[i].getalp())
         alp_np = np.array(alp_list)
-        alp_md = 0.5 * (np.max(alp_np) + np.min(alp_np))
-        alp_np = alp_np - alp_md
         alp_np = alp_np * len(data)
+        alp_np = alp_np - (np.max(alp_np) - 500)
         ret_np = np.exp(alp_np)
         ret_np = ret_np / ret_np.sum()
         del test_trellis
@@ -517,7 +539,7 @@ class Trainer:
         if top == None:
             top = len(self.training_data)
         for i in range(len(self.training_data) - top,
-                len(self.training_data)):
+                       len(self.training_data)):
             sys.stdout.write('\r[test] {:d}/{:d}'.format(
                 i, top))
             sys.stdout.flush()
