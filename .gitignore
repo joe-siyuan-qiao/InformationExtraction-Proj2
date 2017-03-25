@@ -1,2 +1,4 @@
 *.pyc
 modelpool/
+.ipynb_checkpoints/
+results/
